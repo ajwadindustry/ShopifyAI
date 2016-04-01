@@ -1,0 +1,70 @@
+module hw3
+
+(* Assignment 3 *) (* Do not edit this line. *)
+(* Student name: Betty B. Bloomsfield, Id Number: 17294104 *) (* Edit this line. *)
+
+(* Question 1 *)
+type Cell = { data : int; next : RList}
+and RList = Cell option ref
+
+(* For testing.  Uncomment if you want to use them.*) 
+let c1 = {data = 1; next = ref None}
+let c2 = {data = 2; next = ref (Some c1)}
+let c3 = {data = 3; next = ref (Some c2)}
+let c5 = {data = 5; next = ref (Some c3)}
+
+
+(* This converts an RList to an ordinary list. *)
+let rec displayList (c : RList) =
+  match !c with
+    | None -> []
+    | Some { data = d; next = l } -> d :: (displayList l)
+
+(* This may be useful.  You don't have to use it.*)
+let cellToRList (c:Cell):RList = ref (Some c)
+
+(* Example for testing. *)
+let bigger(x:int, y:int) = (x > y)
+
+let rec insert comp (item: int) (list: RList) =
+    let listnode = {data = item; next = ref None}
+    match !list with
+    | None -> list := Some listnode
+    | Some {data = d; next = nx} -> if (comp(d, item)) then
+                                        listnode.next := !nx
+                                        nx := Some listnode
+                                    else insert comp item nx
+(* Question 2*)
+
+type transaction = Withdraw of int | Deposit of int | CheckBalance
+
+let make_protected_account(opening_balance: int,password: string) =
+    let balance = ref opening_balance
+    fun (s:string, t:transaction) ->
+        match s, t with
+            |g, Withdraw(amt) -> if (password.Equals(g)) then
+                                    if(!balance > amt) then
+                                        balance := !balance - amt
+                                        printfn "NEW BALANCE: %i" !balance
+                                    else
+                                        printfn "BALANCE TOO LOW"
+                                else
+                                    printfn ""
+            |g, Deposit(amt) -> if(password.Equals(g)) then
+                                    balance := !balance + amt
+                                    printfn "NEW BALANCE: %i" !balance
+                                else
+                                    printfn "INCORRECT PASSWORD"
+            |g, Checkbalance -> if(password.Equals(g)) then
+                                    printfn "CURRENT BALANCE: %i" !balance
+                                else
+                                    printfn "INCORRECT PASSWORD"
+
+
+
+
+let harry = make_protected_account(5000, "avara kadabra")
+harry("avara kadabra", Checkbalance)
+harry("avara kadabra", Withdraw(50))
+harry("avara kadabra", Deposit(100))
+harry("avara kadabra", Checkbalance)

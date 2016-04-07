@@ -30,7 +30,7 @@ public class StudentPlayer extends HusPlayer {
     	HusBoardState Clone = (HusBoardState) board_state.clone();
     	int MaxIndex = 0;
     	Clone.move(moves.get(MaxIndex));
-    	double MaxScore = MiniMax(Clone,5,1,false);
+    	double MaxScore = 0;//MiniMax(Clone,5,1,false);
     	for(int i = 1;i <scores.length ; i++){
     		Clone = (HusBoardState)board_state.clone();
     		Clone.move(moves.get(i));
@@ -103,41 +103,14 @@ public class StudentPlayer extends HusPlayer {
         */
     }
     
-    private int evaluate(HusBoardState CurrentState){
-    	int x =0;
-    	
-    	if(CurrentState.gameOver()){
-    		if(CurrentState.getWinner()==opponent_id){
-    			return Integer.MAX_VALUE;
-    		}
-    		else{
-    			return Integer.MIN_VALUE;
-    		}
-    	}
-    	
-    	int[][] pits = CurrentState.getPits();
-        int[] player_pits = pits[player_id];
-        int[] opponent_pits = pits[opponent_id];    		
-    	int PlayerTotal =0;
-    	int OpponentTotal = 0;
-    	
-    	for(int i=0; i <player_pits.length; i++ ){
-    		PlayerTotal+=player_pits[i];
-    		
-    	}
-    	
-    	return PlayerTotal; 	
-    	
-    	
-    	
-    }
+   
     
     
-    private double MiniMax(HusBoardState State, int MaxLevel, int CurrentLevel, boolean Max){
+    private double MiniMax(HusBoardState State, int MaxLevel, int CurrentLevel, boolean CurrentPlayer){
     	
     	if(CurrentLevel == MaxLevel){
     		
-    		return NewEvaluate(State);
+    		return BestHeruistic(State); // chnage it to new 
     	}
     	
     	if(State.gameOver()){
@@ -157,32 +130,85 @@ public class StudentPlayer extends HusPlayer {
         for(int i =0; i<score.length;i++){
         	HusBoardState Clone = (HusBoardState) State.clone();
         	Clone.move(moves.get(i));
-        	score[i] = MiniMax(Clone,MaxLevel,CurrentLevel+1, !Max);
+        	score[i] = MiniMax(Clone,MaxLevel,CurrentLevel+1, !CurrentPlayer);
             if(score[i]<Min){
             	
             	Min = score[i];
             	
             }
-            else if(score[i]> Maxi){
-            	
+            else if(score[i]> Maxi){	
+            
             	Maxi = score[i];
             	
-            }
-        
+            }    
         }
-        
-        if(Max){
-        	return Maxi;
+        if(CurrentPlayer){
         	
+        	return Maxi;  	
+        
         }
         else{
+        
         	return Min;
+        	
         }
+    }
+    
+
+    	
+    
+    
+    private double SecondHeruistic(HusBoardState State){
+    	
+    	double finalscore = 0; 
+    	double myseeds = 0;
+    	double myempty =0;
+    	double opponentempty = 0;
+    	
+    	
+    	int[][] pits = State.getPits();
+    	int [] opponent_pits = pits[opponent_id];
+    	int [] player_pits = pits[player_id];
+    	
+    	for(double pit : player_pits){ 
+    		
+    		myseeds+=pit;
+    	}
+    	for(int i = 0; i<opponent_pits.length ; i++){
+    		if(opponent_pits[i]==0){
+    			opponentempty++;
+    		}
+    	}
+    	for(int i = 0; i<player_pits.length ; i++){
+    		if(player_pits[i]==0){
+    			myempty++;
+    		}
+    	}  	
+    	
+    	return (0.45*myseeds+0.35*opponentempty-0.25*myempty);
     	
     }
     
     
-    private double NewEvaluate(HusBoardState State){
+ private int NaiveSeedHeruistic(HusBoardState CurrentState){
+    	
+    	
+    	int[][] pits = CurrentState.getPits();
+        int[] player_pits = pits[player_id];
+        int[] opponent_pits = pits[opponent_id];    		
+    	int PlayerTotal =0;
+    	
+    	for(int i=0; i <player_pits.length; i++ ){
+    		PlayerTotal+=player_pits[i];
+    		
+    	}
+    	
+    	return PlayerTotal; 	
+    	   	
+    }
+    
+    
+    private double BestHeruistic(HusBoardState State){
     	
     	int Vulnerable = 0;
     	int TotalVulnerable = 0;
@@ -200,26 +226,28 @@ public class StudentPlayer extends HusPlayer {
     		
     		if(i+player_pits[i]<=29 && player_pits[i+player_pits[i]]>=1 ){
     		   Vulnerable++;
-    		   int Grabable =opponent_pits[31-(i+player_pits[i]-16)];
+    		   int Grabable =opponent_pits[32-(i+player_pits[i]-16)];
     		   TotalVulnerable += Grabable;
     		   if(Grabable > MaxVulnerable){
     			  MaxVulnerable = Grabable;
     		   }
     		}
     		
-    		if(i+opponent_pits[i]<=29 && opponent_pits[i+opponent_pits[i]]>=1){
+    		if(i+opponent_pits[i]<=29 && opponent_pits[i+opponent_pits[i]]>=1 && (32-(i+opponent_pits[i-16]))>-1){
     			PlayerVulnerable++;
-    			int Grabable = player_pits[31-(i+opponent_pits[i-16])];
+    			
+    			int Grabable = player_pits[32-(i+opponent_pits[i-16])];// change to 32
     			PlayerTotalVulnerable += Grabable;
     			if(Grabable > PlayerMaxVulnerable){
     				PlayerMaxVulnerable = Grabable;
     			}
+
     		}
     		
     	
     	}
 		
-    	double FinalScore =(0.45*evaluate(State))+ (0.25*((float)TotalVulnerable/Vulnerable))+(0.1*MaxVulnerable)	
+    	double FinalScore =((0.45*NaiveSeedHeruistic(State))+ (0.25*((float)TotalVulnerable/Vulnerable))+(0.1*MaxVulnerable))	
         		-(0.1*((float)PlayerTotalVulnerable/PlayerVulnerable)-(0.1*PlayerMaxVulnerable));	
     	
     	return FinalScore;

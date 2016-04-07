@@ -185,7 +185,7 @@ public class StudentPlayer extends HusPlayer {
     		}
     	}  	
     	
-    	return (0.45*myseeds+0.35*opponentempty-0.25*myempty);
+    	return (0.45*myseeds+0.35*opponentempty-0.25*myempty); // heruistic function for second version 
     	
     }
     
@@ -249,7 +249,7 @@ public class StudentPlayer extends HusPlayer {
 		
     	double FinalScore =((0.45*NaiveSeedHeruistic(State))+ (0.25*((float)TotalVulnerable/Vulnerable))+(0.1*MaxVulnerable))	
         		-(0.1*((float)PlayerTotalVulnerable/PlayerVulnerable)-(0.1*PlayerMaxVulnerable));	
-    	
+    	//Best Heruistic Function 
     	return FinalScore;
     	
     	

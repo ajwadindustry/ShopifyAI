@@ -99,7 +99,8 @@ public class MyTools {
    
 
     private double NaiveMiniMax(HusBoardState State, int MaxLevel, int CurrentLevel, boolean CurrentPlayer,int player_id,int opponent_id){
-    	
+    	//Naive MiniMax gave an error before so I had to fix that, there are no errors when you run it now
+    	// Previously only StudentPlayer had the correct version of minimax
     	if(CurrentLevel == MaxLevel){
     		
     		return heruistic1_NumberSeed(State,player_id); // chnage it to new 
